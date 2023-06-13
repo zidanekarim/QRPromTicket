@@ -1,0 +1,28 @@
+{
+  "name": "qrpromticket",
+  "version": "1.0.0",
+  "description": "Creates prom ticket QR code and stores in CSV",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThePotatoPowers/QRPromTicket.git"
+  },
+  "keywords": [
+    "prom",
+    "stuy",
+    "qrpromticket",
+    "qr-stuy"
+  ],
+  "author": "Zidane Karim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ThePotatoPowers/QRPromTicket/issues"
+  },
+  "homepage": "https://github.com/ThePotatoPowers/QRPromTicket#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
