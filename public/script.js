@@ -17,9 +17,33 @@ document.addEventListener("DOMContentLoaded", function() {
             return response.json();
             })
             .then(data => {
+
+            // Assuming you have a table element with the id "qrTable"
+            var table = document.getElementById("qrTable");
+
+            // Reset the table by removing all existing rows
+            while (table.rows.length > 0) {
+                table.deleteRow(0);
+            }
+
+            console.log(data.result);
+
             // Work with JSON data here
-            console.log(data);
-        
+            for (var i = 0; i < data.result.length; i++) {
+                var email = data.result[i][0];
+                var qr = data.result[i][1];
+
+                // Create a new row
+                var newRow = table.insertRow();
+
+                // Insert cells for email and QR code
+                var emailCell = newRow.insertCell();
+                var qrCell = newRow.insertCell();
+
+                
+            }
+
+                    
 
             })
             .catch(error => {

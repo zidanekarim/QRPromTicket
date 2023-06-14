@@ -23,6 +23,7 @@ app.post("/run", async (req, res) => {
         {
             delimiter: ",",
             relax_quotes: true,
+            skip_empty_lines: true,
         }
     ))
     .on("data", (data) => {
@@ -48,7 +49,7 @@ app.post("/run", async (req, res) => {
         }
     })
     .on("end", () => {
-                console.log(result);
+               // console.log("result "+ result);
 
                 // Overwrite the CSV file
                 const csvData = result.map(row => row.join(",")).join('\n');
@@ -60,8 +61,9 @@ app.post("/run", async (req, res) => {
                 });
                 
 
+                console.log("BONKERS "+ result);
+                res.status(200).json({ result });
                 
-                res.json({ result });
 
 
             });
@@ -69,13 +71,14 @@ app.post("/run", async (req, res) => {
     
 
 
-
+            
 
   } catch (err) {
     
     console.log("Invalid Request");
     console.log(err);
   }
+  
 });
 
 
