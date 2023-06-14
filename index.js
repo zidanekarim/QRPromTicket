@@ -148,10 +148,11 @@ app.post("/run", async (req, res) => {
                     } else {
                         console.log('Email sent: ' + info.response);
                         fs.unlinkSync('./qrcode.png');
+                        result.push([data[0], "paid"]);
                     }
                 });
                 
-                    result.push([data[0], "paid"]);
+                    
                     });
             }
         
