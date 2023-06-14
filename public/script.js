@@ -40,11 +40,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 var emailCell = newRow.insertCell();
                 var qrCell = newRow.insertCell();
 
-                
+                // Assign values to the cells
+                emailCell.innerHTML = email;
+                qrCell.innerHTML = qr;
             }
-
-                    
-
             })
             .catch(error => {
             console.log("error", error);
