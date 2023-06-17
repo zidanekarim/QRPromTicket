@@ -25,7 +25,9 @@
   "dependencies": {
     "csv": "^6.3.1",
     "csv-parser": "^3.0.0",
+    "dotenv": "^16.3.0",
     "express": "^4.18.2",
+    "mongoose": "^7.3.0",
     "node-xlsx": "^0.23.0",
     "nodemailer": "^6.9.3",
     "qrcode": "^1.5.3"

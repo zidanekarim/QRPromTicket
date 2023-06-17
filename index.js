@@ -1,12 +1,18 @@
+const dotenv = require("dotenv")
+dotenv.config()
 const express = require('express');
 const app = express();
 const fs = require("fs");
 const { parse } = require("csv-parse");
 const xlsx = require('node-xlsx');
 const nodemailer = require('nodemailer');
+const mongoose = require('mongoose');
 
 const QRCode = require('qrcode');
 app.use(express.static(__dirname + '/public'));
+
+const dbURI = process.env.DB_URI;
+const password = process.env.PASS;
 
 app.get("/", function(req, res)  {
     res.sendFile(__dirname + "/public/index.html");
@@ -17,9 +23,33 @@ var transporter = nodemailer.createTransport({
   service: 'hotmail',
   auth: {
     user: "zkarim7676@hotmail.com",
-    pass: " "
+    pass: password
   }
 });
+
+
+
+
+mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log("Connected");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+mongoose.connection.on('open', function (ref) {
+  console.log('Connected to mongo server.');
+});
+
+
+const paymentSchema = new mongoose.Schema({
+    email: String,
+    paid : Boolean,
+});
+
+const Payment = mongoose.model("Payment", paymentSchema);
+
 
 
 
@@ -149,11 +179,31 @@ app.post("/run", async (req, res) => {
                         console.log('Email sent: ' + info.response);
                         fs.unlinkSync('./qrcode.png');
                         result.push([data[0], "paid"]);
+
                     }
                 });
                 
                     
                     });
+                    Payment.find({ email: data[0] })
+                    .then((payments) => {
+                        if (payments.length) {
+                        return Payment.updateOne({ email: data[0] }, { paid: true });
+                        } else {
+                        const payment = new Payment({
+                            email: data[0],
+                            paid: true,
+                        });
+                        return payment.save();
+                        }
+                    })
+                    .then(() => {
+                        console.log('Payment saved successfully.');
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+
             }
         
     })
@@ -168,6 +218,9 @@ app.post("/run", async (req, res) => {
                     console.log("CSV file saved");
                 
                 });
+
+                
+
                 
 
                 console.log("BONKERS "+ result);
