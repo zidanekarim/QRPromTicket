@@ -16,7 +16,6 @@ const QRCode = require('qrcode');
 app.use(express.static(__dirname + '/public'));
 
 const dbURI = process.env.DB_URI;
-const password = process.env.PASS;
 
 app.get("/", function(req, res)  {
     res.sendFile(__dirname + "/public/index.html");
@@ -43,6 +42,7 @@ mongoose.connection.on('open', function (ref) {
 const paymentSchema = new mongoose.Schema({
     email: String,
     paid : Boolean,
+    code: String,
 });
 
 const Payment = mongoose.model("Payment", paymentSchema);
@@ -149,8 +149,10 @@ app.post("/run", async (req, res) => {
         result.push([data[0], data[1]]);
       } else {
         try {
+          // create a random 16 character string for the QR code, use a variety of numbers and letters
+          const code = Math.random().toString(36).substring(2, 18);
           await new Promise((resolve, reject) => {
-            QRCode.toFile('qrcode.png', data[0], function (err) {
+            QRCode.toFile('qrcode.png', code, function (err) {
               if (err) {
                 console.error(err);
                 reject(err);
@@ -182,10 +184,10 @@ app.post("/run", async (req, res) => {
           result.push([data[0], "paid"]);
 
           await Payment.findOneAndUpdate(
-            { email: data[0] },
-            { paid: true },
-            { upsert: true }
-          );
+          { email: data[0] },
+          { paid: true, code: code },
+          { upsert: true }
+        );
 
           console.log('Payment saved successfully.');
         } catch (error) {
