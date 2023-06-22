@@ -7,7 +7,11 @@ const { parse } = require("csv-parse");
 const xlsx = require('node-xlsx');
 const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
+const sgMail = require('@sendgrid/mail');
 
+const sgAPI = process.env.SG_API;
+
+sgMail.setApiKey(sgAPI);
 const QRCode = require('qrcode');
 app.use(express.static(__dirname + '/public'));
 
@@ -19,13 +23,6 @@ app.get("/", function(req, res)  {
 });
 var result = [];
 
-var transporter = nodemailer.createTransport({
-  service: 'hotmail',
-  auth: {
-    user: "zkarim7676@hotmail.com",
-    pass: password
-  }
-});
 
 
 
@@ -115,12 +112,12 @@ else {
     ))
     .on("data", (data) => {
         if (!fs.readFileSync("./emails.csv").toString().includes(data[15])) {
-            result.push([data[15]]);
+            result.push([data[15], ""]);
         }
     })
     .on("end", () => {
                 // Append the CSV file
-                const csvData = result.map(row => row.join(",")).join('\n') + '\n';
+                const csvData = '\n' + result.map(row => row.join(",")).join('\n');
                 fs.appendFile("./emails.csv", csvData, (err) => {
                     if (err) throw err;
                     console.log("Email CSV file updated");
@@ -135,117 +132,84 @@ else {
 
 
 app.post("/run", async (req, res) => {
-  result = []; 
-
   try {
+    const result = [];
 
-    fs.createReadStream("./emails.csv")
-    .pipe(parse(
-        {
-            delimiter: ",",
-            relax_quotes: true,
-            skip_empty_lines: true,
-        }
-    ))
-    .on("data", (data) => {
-            console.log("data: ", data);
-            if (data.length > 1) {
-                result.push([data[0], data[1]]);
-            }
-            else {
-               // save data[0] as a QR code png and send it to data[0]
-                QRCode.toFile('./qrcode.png', data[0], function (err) {
-                    if (err) throw err;
-                    console.log('QR code saved as qrcode.png');
+    const stream = fs.createReadStream("./emails.csv").pipe(
+      parse({
+        delimiter: ",",
+        relax_quotes: true,
+        skip_empty_lines: true,
+      })
+    );
 
-                const qrCodeData = fs.readFileSync('./qrcode.png');
-                const mailOptions = {
-                    from: 'zkarim7676@hotmail.com',
-                    to: data[0],
-                    subject: 'Your QR Code',
-                    text: "Please find your QR code attached",
-                    attachments: [
-                        {
-                            filename: 'qrcode.png',
-                            content: qrCodeData,
-                        },
-                        ],
-                };
-
-                transporter.sendMail(mailOptions, function(error, info){
-                    if (error) {
-                        console.log(error);
-                    } else {
-                        console.log('Email sent: ' + info.response);
-                        fs.unlinkSync('./qrcode.png');
-                        result.push([data[0], "paid"]);
-
-                    }
-                });
-                
-                    
-                    });
-                    Payment.find({ email: data[0] })
-                    .then((payments) => {
-                        if (payments.length) {
-                        return Payment.updateOne({ email: data[0] }, { paid: true });
-                        } else {
-                        const payment = new Payment({
-                            email: data[0],
-                            paid: true,
-                        });
-                        return payment.save();
-                        }
-                    })
-                    .then(() => {
-                        console.log('Payment saved successfully.');
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                    });
-
-            }
-        
-    })
-    .on("end", () => {
-               // console.log("result "+ result);
-
-                // Overwrite the CSV file
-                const csvData = result.map(row => row.join(",")).join('\n');
-                
-                fs.writeFile("./emails.csv", csvData, (err) => {
-                    if (err) throw err;
-                    console.log("CSV file saved");
-                
-                });
-
-                
-
-                
-
-                console.log("BONKERS "+ result);
-                res.status(200).json({ result });
-                
-
-
+    for await (const data of stream) {
+      console.log("data: ", data);
+      if (data.length > 1 && data[1] === "paid") {
+        result.push([data[0], data[1]]);
+      } else {
+        try {
+          await new Promise((resolve, reject) => {
+            QRCode.toFile('qrcode.png', data[0], function (err) {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
+                console.log('QR code saved as qrcode.png');
+                resolve();
+              }
             });
+          });
 
-    
+          const attachment = fs.readFileSync('qrcode.png').toString('base64');
 
+          const mailOptions = {
+            from: 'zidane.karim@stuysu.org',
+            to: data[0],
+            subject: 'Your QR Code',
+            text: "Please find your QR code attached",
+            attachments: [
+              {
+                filename: 'qrcode.png',
+                content: attachment,
+              },
+            ],
+          };
 
-            
+          await sgMail.send(mailOptions);
 
+          console.log('Email sent');
+          result.push([data[0], "paid"]);
+
+          await Payment.findOneAndUpdate(
+            { email: data[0] },
+            { paid: true },
+            { upsert: true }
+          );
+
+          console.log('Payment saved successfully.');
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    }
+
+    console.log("result ", result);
+
+    const csvData = result.map(row => row.join(",")).join('\n');
+
+    fs.writeFile("emails.csv", csvData, (err) => {
+      if (err) throw err;
+      console.log("CSV file saved");
+    });
+
+    console.log("BONKERS ", result);
+    res.status(200).json({ result });
   } catch (err) {
-    
     console.log("Invalid Request");
     console.log(err);
   }
-  
 });
-
-
-
-
 
 app.listen(5000, function()  {
     console.log("Server is running on port 5000");
