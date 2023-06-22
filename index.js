@@ -5,7 +5,7 @@ const app = express();
 const fs = require("fs");
 const { parse } = require("csv-parse");
 const xlsx = require('node-xlsx');
-const nodemailer = require('nodemailer');
+//const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
 const sgMail = require('@sendgrid/mail');
 
