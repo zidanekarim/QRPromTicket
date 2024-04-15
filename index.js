@@ -86,7 +86,11 @@ if (!fs.existsSync("./emails.csv")) {
         }
     ))
     .on("data", (data) => {
-        result.push([data[15]]);
+      //console.log(typeof(data[17]));
+      //console.log("HELLO!!!");
+      let emailAndCount = data[15].concat(data[17]);
+
+      result.push([emailAndCount]);
         
     })
     .on("end", () => {
@@ -111,8 +115,9 @@ else {
         }
     ))
     .on("data", (data) => {
-        if (!fs.readFileSync("./emails.csv").toString().includes(data[15])) {
-            result.push([data[15], ""]);
+        let emailAndCount = data[15].concat(data[17]);
+        if (!fs.readFileSync("./emails.csv").toString().includes(emailAndCount)) {
+            result.push([emailAndCount, ""]);
         }
     })
     .on("end", () => {
@@ -150,7 +155,21 @@ app.post("/run", async (req, res) => {
       } else {
         try {
           // create a random 16 character string for the QR code, use a variety of numbers and letters
-          const code = Math.random().toString(36).substring(2, 18);
+          // get last character of email to remove the count
+          let count = data[0].substring(data[0].length - 1);
+          let countText = "";
+          console.log("count: ", count);
+          if (count === "1") {
+            countText = "ONE";
+          }
+          else if (count === "2") {
+            countText = "TWO";
+          }
+
+          var code = Math.random().toString(36).substring(2, 18);
+          console.log("code: ", code);
+          code = countText.concat(code);
+
           await new Promise((resolve, reject) => {
             QRCode.toFile('qrcode.png', code, function (err) {
               if (err) {
@@ -164,10 +183,11 @@ app.post("/run", async (req, res) => {
           });
 
           const attachment = fs.readFileSync('qrcode.png').toString('base64');
-
+          
+          let emailWithoutCount = data[0].substring(0, data[0].length - 1);
           const mailOptions = {
             from: 'zidane.karim@stuysu.org',
-            to: data[0],
+            to: emailWithoutCount,
             subject: 'Your QR Code',
             text: "Please find your QR code attached",
             attachments: [
@@ -184,7 +204,7 @@ app.post("/run", async (req, res) => {
           result.push([data[0], "paid"]);
 
           await Payment.findOneAndUpdate(
-          { email: data[0] },
+          { email: emailWithoutCount },
           { paid: true, code: code },
           { upsert: true }
         );
