@@ -48,6 +48,6 @@ document.addEventListener("DOMContentLoaded", function() {
             .catch(error => {
             console.log("error", error);
             // Handle the error, for example, by displaying an error message to the user.
-            });
-});
+        });
+    });
 });

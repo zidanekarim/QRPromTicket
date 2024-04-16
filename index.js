@@ -88,7 +88,7 @@ if (!fs.existsSync("./emails.csv")) {
     .on("data", (data) => {
       //console.log(typeof(data[17]));
       //console.log("HELLO!!!");
-      let emailAndCount = data[15].concat(data[17]);
+      let emailAndCount = data[17].concat(data[18]);
 
       result.push([emailAndCount]);
         
@@ -115,7 +115,7 @@ else {
         }
     ))
     .on("data", (data) => {
-        let emailAndCount = data[15].concat(data[17]);
+        let emailAndCount = data[17].concat(data[18]);
         if (!fs.readFileSync("./emails.csv").toString().includes(emailAndCount)) {
             result.push([emailAndCount, ""]);
         }
