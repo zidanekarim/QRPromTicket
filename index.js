@@ -5,11 +5,12 @@ const app = express();
 const fs = require("fs");
 const { parse } = require("csv-parse");
 const xlsx = require('node-xlsx');
-//const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
 const sgMail = require('@sendgrid/mail');
 
 const sgAPI = process.env.SG_API;
+
+
 
 sgMail.setApiKey(sgAPI);
 const QRCode = require('qrcode');
@@ -194,9 +195,13 @@ app.post("/run", async (req, res) => {
               {
                 filename: 'qrcode.png',
                 content: attachment,
+                encoding: 'base64',
               },
             ],
           };
+
+
+          //await transporter.sendMail(mailOptions);
 
           await sgMail.send(mailOptions);
 
@@ -225,7 +230,6 @@ app.post("/run", async (req, res) => {
       console.log("CSV file saved");
     });
 
-    console.log("BONKERS ", result);
     res.status(200).json({ result });
   } catch (err) {
     console.log("Invalid Request");
