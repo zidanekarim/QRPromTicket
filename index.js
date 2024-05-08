@@ -187,10 +187,10 @@ app.post("/run", async (req, res) => {
           
           let emailWithoutCount = data[0].substring(0, data[0].length - 1);
           const mailOptions = {
-            from: 'zidane.karim@stuysu.org',
+            from: 'zidane.karim@zidanekarim.me',
             to: emailWithoutCount,
-            subject: 'Your QR Code',
-            text: "Please find your QR code attached",
+            subject: '[Stuyvesant Senior Prom Ticket] Your Ticket',
+            text: "Please find your QR code attached\nBring this code to the prom to get in! Don't share this code with anyone else!",
             attachments: [
               {
                 filename: 'qrcode.png',
