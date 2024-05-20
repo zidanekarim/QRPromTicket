@@ -190,7 +190,7 @@ app.post("/run", async (req, res) => {
             from: 'zidane.karim@zidanekarim.me',
             to: emailWithoutCount,
             subject: '[Stuyvesant Senior Prom Ticket] Your Ticket',
-            text: "Please find your QR code attached\nBring this code to the prom to get in! Don't share this code with anyone else!",
+            text: "Please find your QR code attached\nBring this code to the prom to get in! Don't share this code with anyone else!\nThis is an automated email.\nFor questions, email zidane.karim@stuysu.org",
             attachments: [
               {
                 filename: 'qrcode.png',
